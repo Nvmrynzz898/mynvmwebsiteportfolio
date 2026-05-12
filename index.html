@@ -947,8 +947,7 @@ Supported GTM strategies for early-stage digital clients in the tech sector (New
       };
     }
 
-    // Walk speed: slow stop-and-go feel using sine wave
-    let walkStep = 0;
+    const WALK_SPEED = 0.6; // constant speed, tweak this number to adjust
 
     function startWalk() {
       sprite.src = frontSrc;
@@ -959,22 +958,26 @@ Supported GTM strategies for early-stage digital clients in the tech sector (New
       }
       posX = 62;
       direction = 1;
-      walkStep = 0;
       walker.style.left = posX + 'px';
       walker.classList.add('visible');
       walk();
     }
 
-    function walk() {
+    let lastTime = null;
+
+    function walk(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const delta = timestamp - lastTime;
+      lastTime = timestamp;
+
       const b = getNavBounds();
-      // Sine wave speed: ranges 0 to ~1.4, gives stop-and-go feel
-      walkStep += 0.04;
-      const speed = Math.abs(Math.sin(walkStep)) * 0.98; // 30% slower
-      posX += direction * speed;
+      // Constant speed regardless of frame rate
+      const step = WALK_SPEED * (delta / 16.67);
+      posX += direction * step;
 
       if (posX >= b.right) {
         direction = -1;
-        sprite.src = backSrc;  // flip to back when returning
+        sprite.src = backSrc;
       }
       if (posX <= b.left) {
         direction = 1;
@@ -1048,7 +1051,7 @@ Supported GTM strategies for early-stage digital clients in the tech sector (New
       }, 180);
       // Resume walking after 5 seconds with reset speed
       setTimeout(() => {
-        if (isOpen) { walkStep = 0; walk(); }
+        if (isOpen) { lastTime = null; walk(); }
       }, 5000);
     }
   </script>
